@@ -40,11 +40,16 @@ namespace LoginProject.Controllers
             return View();
         } public IActionResult Login()
         {
+            ClaimsPrincipal claimUser = HttpContext.User;
+            if (claimUser.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(User user)
+        public async Task<IActionResult> Login(User user)
         {
             var un= user.Username;
             var ps= user.Password;
@@ -58,11 +63,25 @@ namespace LoginProject.Controllers
                 }
                 else
                 {
+                    List<Claim> claims = new List<Claim>()
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, user.Username),
+                        new Claim("OtherProperties", "Example Role")
+
+                    };
+                    ClaimsIdentity claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    AuthenticationProperties properties = new AuthenticationProperties()
+                    {
+                        AllowRefresh= true,
+                        IsPersistent= user.KeepLoggedIn,
+                    };
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), properties);
                     TempData["loggedin"] = "User logged in successfully";
                     return RedirectToAction("Index", "Home");
                 }
                 
             }
+            ViewData["ValidateMessage"] = "user not found";
             return View();
         } public IActionResult Delete(int? id)
         {
@@ -80,6 +99,32 @@ namespace LoginProject.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(User user)
+        {
+            if (ModelState.IsValid)
+            {
+                _db.Users.Remove(user);
+                _db.SaveChanges();
+                TempData["deleted"] = "User deleted";
+                return RedirectToAction("Index", "User");
+            }
+
+            return View();
+        }public IActionResult Update(int? id)
+        {
+            if(id == null)
+            {
+                return NotFound();
+            }
+            var foundUser = _db.Users.Find(id);
+            if(foundUser== null)
+            {
+                return NotFound();
+            }
+            return View(foundUser);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Update(User user)
         {
             if (ModelState.IsValid)
             {

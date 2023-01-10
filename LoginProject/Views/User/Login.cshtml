@@ -13,7 +13,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Login">
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Username" class="control-label">Username</label>
@@ -22,8 +22,14 @@
             </div>
             <div class="form-group">
                 <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password"  class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="KeepLoggedIn" class="control-label">Keep me logged in
+                    <input asp-for="KeepLoggedIn" type="checkbox" class="form-control" />
+                </label>
+                <span asp-validation-for="KeepLoggedIn" class="text-danger"></span>
             </div>
             @*<div class="form-group form-check">
                 <label class="form-check-label">
@@ -33,6 +39,12 @@
             <div class="form-group">
                 <input type="submit" value="Login" class="btn btn-primary" asp-action="Login" asp-controller="User" />
             </div>
+            @if(ViewData["ValidateMessage"] != null)
+            {
+                <br />
+                <br />
+                <label>@ViewData["ValidateMessage"]</label>
+            }
             <a asp-controller="User" asp-action="Create">Not a user?</a>
         </form>
     </div>
